@@ -76,3 +76,4 @@ typings/
 
 ## Packages
 /build/**
+web/dist/

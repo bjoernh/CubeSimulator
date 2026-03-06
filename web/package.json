@@ -1,0 +1,27 @@
+{
+  "name": "ledcube-simulator",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "lil-gui": "^0.21.0",
+    "protobufjs": "^8.0.0",
+    "stats.js": "^0.17.0",
+    "three": "^0.183.0"
+  },
+  "devDependencies": {
+    "@types/stats.js": "^0.17.4",
+    "@types/three": "^0.183.0",
+    "jsdom": "^28.1.0",
+    "typescript": "^5.7.0",
+    "vite": "^7.0.0",
+    "vitest": "^4.0.18"
+  }
+}
