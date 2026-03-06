@@ -1,11 +1,11 @@
 # LEDCube Simulator
 
-Browser-based 3D LED Cube Simulator. Connects to a running [matrixserver](https://github.com/gambiz/matrixserver) via WebSocket and renders the LED state in real time using Three.js.
+Browser-based 3D LED Cube Simulator. Connects to a running [matrixserver](https://github.com/bjoernh/matrixserver) via WebSocket and renders the LED state in real time using Three.js.
 
 ## 🌐 Try it live
 
 Open in your browser — no installation required:
-**https://&lt;your-github-username&gt;.github.io/CubeSimulator/**
+**https://bjoernh.github.io/CubeSimulator/**
 
 Enter the WebSocket address of your matrixserver (`ws://localhost:1337`) and click **Connect**.
 
@@ -33,7 +33,7 @@ npm run build    # production build → web/dist/
 
 ## matrixserver Setup
 
-Build `server_simulator` from the [matrixserver](https://github.com/gambiz/matrixserver) repo with the `feature/websocket-renderer` branch.
+Build `server_simulator` from the [matrixserver](https://github.com/bjoernh/matrixserver) repo with the `feature/websocket-renderer` branch.
 
 ```bash
 ./server_simulator                              # WebSocket mode (default, port 1337)

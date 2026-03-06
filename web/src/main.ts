@@ -21,6 +21,7 @@ let camera2: CustomCamera;
 let renderer: THREE.WebGLRenderer;
 let stats: Stats;
 let screens: LedScreen[];
+let innerCube: THREE.Mesh;
 let gui: GUI;
 let displayStyle: 'Single' | 'Splitscreen' | 'Backdrop' = 'Single';
 
@@ -81,7 +82,7 @@ function setupScene() {
   // Inner cube (fills centre so screens form a solid cube)
   const innerGeo = new THREE.BoxGeometry(1, 1, 1);
   const innerMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-  const innerCube = new THREE.Mesh(innerGeo, innerMat);
+  innerCube = new THREE.Mesh(innerGeo, innerMat);
   innerCube.scale.setScalar(SCREEN_WIDTH + cubeOptions.cubeBorder * 2 - 0.1);
   scene.add(innerCube);
 }
@@ -90,6 +91,7 @@ function setupRenderer() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(1);
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.domElement.id = 'scene-canvas';
   document.body.appendChild(renderer.domElement);
 }
 
@@ -107,23 +109,36 @@ function setupGUI() {
     ...flatOptions,
   };
 
-  gui.add(param, 'Screen display type', { Cube: 0, 'Single Screens': 1 }).onChange((val: string) => {
-    if (val === '0') setScreenPositionsCube(screens, cubeOptions.cubeBorder);
-    else setScreenPositionsFlat(flatOptions.flatRowCount, flatOptions.flatColCount, flatOptions.flatGapRow, flatOptions.flatGapCol, screens);
+  gui.add(param, 'Screen display type', { Cube: 0, 'Single Screens': 1 }).onChange((val: number | string) => {
+    // lil-gui passes the exact value type from the mapping object, so it will be the number 0 or 1
+    if (val === 0 || val === '0') {
+      setScreenPositionsCube(screens, cubeOptions.cubeBorder);
+      if (innerCube) innerCube.visible = true;
+    } else {
+      setScreenPositionsFlat(flatOptions.flatRowCount, flatOptions.flatColCount, flatOptions.flatGapRow, flatOptions.flatGapCol, screens);
+      if (innerCube) innerCube.visible = false;
+    }
   });
 
   const folderCube = gui.addFolder('Cube Options');
   folderCube.add(param, 'cubeBorder', 0, 50, 1).onChange((val: number) => {
     cubeOptions.cubeBorder = val;
     setScreenPositionsCube(screens, cubeOptions.cubeBorder);
+    if (innerCube) innerCube.scale.setScalar(SCREEN_WIDTH + cubeOptions.cubeBorder * 2 - 0.1);
   });
 
   const folderFlat = gui.addFolder('Flat Options');
   folderFlat.add(param, 'flatRowCount', 1, 10, 1).onChange((val: number) => {
     flatOptions.flatRowCount = val;
+    if (param['Screen display type'] === 1) {
+      setScreenPositionsFlat(flatOptions.flatRowCount, flatOptions.flatColCount, flatOptions.flatGapRow, flatOptions.flatGapCol, screens);
+    }
   });
   folderFlat.add(param, 'flatColCount', 1, 10, 1).onChange((val: number) => {
     flatOptions.flatColCount = val;
+    if (param['Screen display type'] === 1) {
+      setScreenPositionsFlat(flatOptions.flatRowCount, flatOptions.flatColCount, flatOptions.flatGapRow, flatOptions.flatGapCol, screens);
+    }
   });
 
   gui.add(param, 'Camera', { Perspective: 0, Orthogonal: 1 }).onChange((val: string) => {
