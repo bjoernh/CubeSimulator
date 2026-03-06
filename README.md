@@ -1,42 +1,55 @@
-## Quickstart
+# LEDCube Simulator
 
-## Do these steps once
-### Install Node modules
+Browser-based 3D LED Cube Simulator. Connects to a running [matrixserver](https://github.com/gambiz/matrixserver) via WebSocket and renders the LED state in real time using Three.js.
 
-`$ npm install`
+## 🌐 Try it live
 
-### Protobuf
-To use the .proto files, the following steps need to be executed.
+Open in your browser — no installation required:
+**https://&lt;your-github-username&gt;.github.io/CubeSimulator/**
 
-#### create the JS file    
+Enter the WebSocket address of your matrixserver (`ws://localhost:1337`) and click **Connect**.
+
+## Architecture
+
+```
+Example App (C++) ──TCP :2017──► matrixserver (C++)
+                                      │
+                                 WebSocketSimulatorRenderer
+                                      │ WebSocket :1337
+                                      ▼
+                              Browser (this app)
+                           ThreeJS 3D LED Cube Renderer
+```
+
+## Development
+
 ```bash
-chmod +x ./node_modules/protobufjs/cli/bin/pb*
-./node_modules/protobufjs/cli/bin/pbjs -t static-module -w commonjs -o model.js matrixserver.proto
+cd web
+npm install
+npm run dev      # dev server at http://localhost:5173/CubeSimulator/
+npm test         # run Vitest unit tests
+npm run build    # production build → web/dist/
 ```
-#### create the TS file    
+
+## matrixserver Setup
+
+Build `server_simulator` from the [matrixserver](https://github.com/gambiz/matrixserver) repo with the `feature/websocket-renderer` branch.
+
 ```bash
-./node_modules/protobufjs/cli/bin/pbts -o model.d.ts model.js
-```
-#### copy the files in the appropriate folders                 
-```bash
-cp model.js src/ && mv model.js out-tsc/ && mv model.d.ts src/
+./server_simulator                              # WebSocket mode (default, port 1337)
+./server_simulator --use-deprecated-tcp-connection  # legacy TCP mode
 ```
 
-## compile & start
-
-`$ npm start`.
-
-### start via electron (if above doesn't start the app) 
-`$ electron .`
-
-# Packaging
-## install packager
-```bash
-npm install electron-packager -g
-```
-## Packaging
-```
-electron-packager . test --platform=win32 --arch=x64 --out=build
-electron-packager . test --platform=darwin --arch=x64 --out=build
+Configure the simulator address in `matrixServerConfig.json`:
+```json
+{
+  "simulatorAddress": "0.0.0.0",
+  "simulatorPort": "1337"
+}
 ```
 
+## Deploy
+
+Push to `feature/browser-websocket` or `master` — GitHub Actions builds and deploys automatically to GitHub Pages.
+
+> **Note**: For the browser to connect, the matrixserver WebSocket port must be reachable from the client. If running locally, use `ws://localhost:1337`. For remote servers, consider a reverse proxy with TLS (`wss://`).
