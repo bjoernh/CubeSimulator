@@ -2,6 +2,8 @@
 
 Browser-based 3D LED Cube Simulator. Connects to a running [matrixserver](https://github.com/bjoernh/matrixserver) via WebSocket and renders the LED state in real time using Three.js.
 
+![LEDCube Simulator Screenshot](LEDCubeSim.jpg)
+
 ## 🌐 Try it live
 
 Open in your browser — no installation required:
