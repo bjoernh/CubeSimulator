@@ -40,6 +40,8 @@ async function init() {
   setupRenderer();
   camera = new CustomCamera(renderer, false);
   camera2 = new CustomCamera(renderer, true);
+  camera.setRotateSpeed(1.0);
+  camera2.setRotateSpeed(1.0);
   setupGUI();
   setupConnectionUI();
   window.addEventListener('resize', onWindowResize);
@@ -103,6 +105,7 @@ function setupGUI() {
   const param = {
     'Screen display type': 0,
     Camera: 0,
+    cameraRotateSpeed: 1.0,
     Displaystyle: 0,
     'Reset Camera': () => { camera.reset(); camera2.reset(); },
     ...cubeOptions,
@@ -150,6 +153,11 @@ function setupGUI() {
   gui.add(param, 'Displaystyle', { Single: 0, Splitscreen: 1, Backdrop: 2 }).onChange((val: string) => {
     displayStyle = (['Single', 'Splitscreen', 'Backdrop'] as const)[parseInt(val)];
     resetWindowSizes();
+  });
+
+  gui.add(param, 'cameraRotateSpeed', 0.1, 5.0, 0.1).name('Camera Sensitivy').onChange((val: number) => {
+    camera.setRotateSpeed(val);
+    camera2.setRotateSpeed(val);
   });
 
   gui.add(param, 'Reset Camera');

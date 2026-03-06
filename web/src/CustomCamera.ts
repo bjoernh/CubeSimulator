@@ -87,4 +87,9 @@ export class CustomCamera {
     switchToPerspective(): void {
         this.currentCamera = this.perspectiveCamera;
     }
+
+    setRotateSpeed(speed: number): void {
+        this.cameraControlsOrtho.rotateSpeed = speed;
+        this.cameraControlsPerspective.rotateSpeed = speed;
+    }
 }
