@@ -221,4 +221,44 @@ describe('WebSocketConnection', () => {
         connection.connect('ws://localhost:1337');
         expect(MockWebSocket.instances[0].binaryType).toBe('arraybuffer');
     });
+    // ── IMU transmission ─────────────────────────────────────────────────────────
+
+    it('sends encoded IMU data when connected', () => {
+        // Stub the protobuf encoder
+        const mockEncodeFinish = vi.fn().mockReturnValue(new Uint8Array([1, 2, 3]));
+        const mockCreate = vi.fn().mockImplementation((payload) => payload);
+        (connection as any).MatrixServerMessage = {
+            create: mockCreate,
+            encode: () => ({ finish: mockEncodeFinish }),
+        };
+
+        connection.connect('ws://localhost:1337');
+        MockWebSocket.instances[0].simulateOpen();
+
+        const sendSpy = vi.spyOn(MockWebSocket.instances[0], 'send');
+
+        connection.sendImuData(0.5, -9.8, 1.2);
+
+        expect(mockCreate).toHaveBeenCalledWith({
+            messageType: 9, // imuData
+            imuData: {
+                accelX: 0.5,
+                accelY: -9.8,
+                accelZ: 1.2,
+                gyroX: 0,
+                gyroY: 0,
+                gyroZ: 0
+            }
+        });
+        expect(sendSpy).toHaveBeenCalledWith(new Uint8Array([1, 2, 3]));
+    });
+
+    it('does not send IMU data if disconnected', () => {
+        const sendSpy = vi.fn();
+        MockWebSocket.prototype.send = sendSpy;
+
+        // Missing MatrixServerMessage and not connected
+        connection.sendImuData(1, 2, 3);
+        expect(sendSpy).not.toHaveBeenCalled();
+    });
 });

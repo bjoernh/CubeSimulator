@@ -114,6 +114,28 @@ export class WebSocketConnection {
         this.url = '';
     }
 
+    sendImuData(accelX: number, accelY: number, accelZ: number): void {
+        if (this.state !== 'connected' || !this.ws || !this.MatrixServerMessage) return;
+
+        try {
+            const message = this.MatrixServerMessage.create({
+                messageType: 9, // imuData enum value
+                imuData: {
+                    accelX,
+                    accelY,
+                    accelZ,
+                    gyroX: 0,
+                    gyroY: 0,
+                    gyroZ: 0
+                }
+            });
+            const buffer = this.MatrixServerMessage.encode(message).finish();
+            this.ws.send(buffer);
+        } catch (e) {
+            console.warn('[WebSocketConnection] Failed to encode and send IMU data:', e);
+        }
+    }
+
     private _setState(state: ConnectionState): void {
         this.state = state;
         if (this.stateCallback) {

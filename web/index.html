@@ -163,11 +163,21 @@
   <!-- Connection Panel -->
   <div id="connection-panel">
     <label for="ws-url">MatrixServer</label>
-    <input id="ws-url" type="text" value="ws://localhost:1337" placeholder="ws://192.168.1.100:1337" autocomplete="off"
+    <input id="ws-url" type="text" value="ws://localhost:1337" placeholder="wss://<your-ip>/matrix-ws" autocomplete="off"
       spellcheck="false" />
     <button id="connect-btn">Connect</button>
     <span id="connection-status" class="status disconnected">DISCONNECTED</span>
   </div>
+
+  <script>
+    // Automatically set default URL to the secure proxy based on current browser host + protocol
+    const urlInput = document.getElementById('ws-url');
+    if (window.location.protocol === 'https:') {
+      urlInput.value = 'wss://' + window.location.host + '/matrix-ws';
+    } else {
+      urlInput.value = 'ws://' + window.location.hostname + ':1337';
+    }
+  </script>
 
   <script type="module" src="/src/main.ts"></script>
 </body>

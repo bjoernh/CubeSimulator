@@ -28,6 +28,11 @@ let displayStyle: 'Single' | 'Splitscreen' | 'Backdrop' = 'Single';
 const cubeOptions = { cubeBorder: 5 };
 const flatOptions = { flatGapCol: 20, flatGapRow: 20, flatColCount: 3, flatRowCount: 2 };
 
+// --- IMU State ---
+let isImuActive = false;
+let lastImuSendTime = 0;
+const IMU_SEND_INTERVAL = 100; // ~10Hz
+
 const wsConnection = new WebSocketConnection();
 
 // --- Init ---
@@ -44,6 +49,7 @@ async function init() {
   camera2.setRotateSpeed(1.0);
   setupGUI();
   setupConnectionUI();
+  setupImuListeners();
   window.addEventListener('resize', onWindowResize);
 
   // Load proto and wire up receiving frames
@@ -161,6 +167,38 @@ function setupGUI() {
   });
 
   gui.add(param, 'Reset Camera');
+
+  const folderSensors = gui.addFolder('Sensors (Smartphone)');
+  folderSensors.add({
+    'Request Permissions': () => {
+      // @ts-ignore (DeviceOrientationEvent.requestPermission is an iOS specific non-standard API)
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        // @ts-ignore
+        DeviceMotionEvent.requestPermission()
+          .then((permissionState: string) => {
+            if (permissionState === 'granted') {
+              console.log('IMU Permission granted');
+              alert('IMU Permission granted');
+              isImuActive = true;
+            } else {
+              alert('IMU Permission denied: ' + permissionState);
+            }
+          })
+          .catch((error: any) => {
+            console.error(error);
+            alert('Error requesting IMU permission: ' + error);
+          });
+      } else {
+        // Non iOS 13+ devices
+        isImuActive = true;
+        console.log('IMU tracking enabled (No explicit permission required on this browser)');
+        alert('IMU tracking enabled (No explicit permission required on this browser)');
+      }
+    }
+  }, 'Request Permissions');
+  folderSensors.add({ 'Send IMU Stream': false }, 'Send IMU Stream').onChange((val: boolean) => {
+    isImuActive = val;
+  }).listen().name('Send IMU Data');
 }
 
 // --- Connection UI ---
@@ -182,6 +220,28 @@ function setupConnectionUI() {
       wsConnection.connect(urlInput.value.trim());
     }
   });
+}
+
+// --- IMU Listeners ---
+function setupImuListeners() {
+  window.addEventListener('devicemotion', (event) => {
+    if (!isImuActive || wsConnection.getState() !== 'connected') return;
+
+    const now = Date.now();
+    if (now - lastImuSendTime > IMU_SEND_INTERVAL) {
+      lastImuSendTime = now;
+
+      // Extract raw acceleration including gravity (which is what MPU6050 expects)
+      const ax = event.accelerationIncludingGravity?.x || 0;
+      const ay = event.accelerationIncludingGravity?.y || 0;
+      const az = event.accelerationIncludingGravity?.z || 0;
+
+      // Only send if we actually have data (prevents sending 0,0,0 continuously from desktops)
+      if (ax !== 0 || ay !== 0 || az !== 0) {
+        wsConnection.sendImuData(ax, ay, az);
+      }
+    }
+  }, true);
 }
 
 // --- Render loop ---
