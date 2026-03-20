@@ -9,12 +9,16 @@ export interface ScreenFrameData {
 
 export type FrameCallback = (screens: ScreenFrameData[]) => void;
 export type StateCallback = (state: ConnectionState) => void;
+export type ParamSchemaCallback = (schema: any, appId: number) => void;
+export type ParamValuesCallback = (values: any, appId: number) => void;
 
 export class WebSocketConnection {
     private ws: WebSocket | null = null;
     private state: ConnectionState = 'disconnected';
     private frameCallback: FrameCallback | null = null;
     private stateCallback: StateCallback | null = null;
+    private paramSchemaCallback: ParamSchemaCallback | null = null;
+    private paramValuesCallback: ParamValuesCallback | null = null;
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private reconnectDelay = 3000;
     private url: string = '';
@@ -34,6 +38,14 @@ export class WebSocketConnection {
 
     onStateChange(cb: StateCallback): void {
         this.stateCallback = cb;
+    }
+
+    onParamSchema(cb: ParamSchemaCallback): void {
+        this.paramSchemaCallback = cb;
+    }
+
+    onParamValues(cb: ParamValuesCallback): void {
+        this.paramValuesCallback = cb;
     }
 
     connect(url: string): void {
@@ -72,17 +84,23 @@ export class WebSocketConnection {
     }
 
     private _handleMessage(data: ArrayBuffer): void {
-        if (!this.MatrixServerMessage || !this.frameCallback) return;
+        if (!this.MatrixServerMessage) return;
         try {
             const bytes = new Uint8Array(data);
             const message = this.MatrixServerMessage.decode(bytes) as any;
 
-            if (message.screenData && message.screenData.length > 0) {
+            if (message.screenData && message.screenData.length > 0 && this.frameCallback) {
                 const screens: ScreenFrameData[] = message.screenData.map((sd: any) => ({
                     screenId: sd.screenID,
                     frameData: sd.frameData as Uint8Array,
                 }));
                 this.frameCallback(screens);
+            }
+
+            if (message.messageType === 11 && this.paramSchemaCallback) { // appParamSchema
+                this.paramSchemaCallback(message.appParamSchema, message.appId);
+            } else if (message.messageType === 14 && this.paramValuesCallback) { // appParamValues
+                this.paramValuesCallback(message.appParamValues, message.appId);
             }
         } catch (e) {
             console.warn('[WebSocketConnection] Failed to decode protobuf message:', e);
@@ -133,6 +151,43 @@ export class WebSocketConnection {
             this.ws.send(buffer);
         } catch (e) {
             console.warn('[WebSocketConnection] Failed to encode and send IMU data:', e);
+        }
+    }
+
+    sendParamUpdate(key: string, value: any, type: string, appId: number): void {
+        if (this.state !== 'connected' || !this.ws || !this.MatrixServerMessage) return;
+
+        try {
+            const update: any = { key };
+            if (type === 'float') update.floatVal = value;
+            else if (type === 'int') update.intVal = value;
+            else if (type === 'bool') update.boolVal = value;
+            else if (type === 'enum') update.stringVal = value;
+
+            const message = this.MatrixServerMessage.create({
+                messageType: 12, // setAppParam
+                appId,
+                appParamUpdate: update
+            });
+            const buffer = this.MatrixServerMessage.encode(message).finish();
+            this.ws.send(buffer);
+        } catch (e) {
+            console.warn('[WebSocketConnection] Failed to send param update:', e);
+        }
+    }
+
+    sendGetAppParams(appId: number): void {
+        if (this.state !== 'connected' || !this.ws || !this.MatrixServerMessage) return;
+
+        try {
+            const message = this.MatrixServerMessage.create({
+                messageType: 13, // getAppParams
+                appId
+            });
+            const buffer = this.MatrixServerMessage.encode(message).finish();
+            this.ws.send(buffer);
+        } catch (e) {
+            console.warn('[WebSocketConnection] Failed to send getAppParams:', e);
         }
     }
 

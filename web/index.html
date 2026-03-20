@@ -153,12 +153,255 @@
       background: rgba(239, 68, 68, 0.18);
       color: #ef4444;
     }
+
+    /* ── Side Panel ───────────────────────────────────────────── */
+    #side-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: 350px;
+      background: rgba(17, 21, 30, 0.95);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 200;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(350px);
+    }
+
+    #side-panel.open {
+      transform: translateX(0);
+    }
+
+    #side-panel-toggle {
+      position: absolute;
+      left: -50px;
+      top: 20px;
+      width: 50px;
+      height: 50px;
+      background: rgba(17, 21, 30, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-right: none;
+      border-radius: 12px 0 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      cursor: pointer;
+      font-size: 20px;
+      box-shadow: -4px 0 16px rgba(0, 0, 0, 0.3);
+      user-select: none;
+    }
+
+    #side-panel-content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    #param-config-header h2 {
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    #active-app-name {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    #param-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .param-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .param-group-title {
+      color: #4a90d9;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .control-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .control-value {
+      color: #4a90d9;
+      font-size: 12px;
+      font-family: monospace;
+      font-weight: 600;
+    }
+
+    /* Range input styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+    }
+
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #4a90d9;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -6px;
+      box-shadow: 0 0 8px rgba(74, 144, 217, 0.4);
+    }
+
+    /* Checkbox/Toggle styling */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #4a90d9;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Select styling */
+    select {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #fff;
+      padding: 8px 12px;
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+
+    #preset-controls {
+      margin-top: auto;
+      display: flex;
+      gap: 10px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #preset-controls button {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      padding: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    #preset-controls button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
   </style>
 </head>
 
 <body>
   <!-- Title -->
-  <h1 id="header-title">LEDCube <span>Simulator</span></h1>
+  <h1 id="header-title">LEDCube <span>Webapp</span></h1>
+
+  <!-- Side Panel -->
+  <div id="side-panel">
+    <div id="side-panel-toggle" title="Settings">⚙</div>
+    <div id="side-panel-content">
+      <div id="param-config-header">
+        <h2>App Configuration</h2>
+        <div id="active-app-name">Initializing...</div>
+      </div>
+      <div id="param-controls">
+        <!-- Dynamically generated controls will appear here -->
+      </div>
+      <div id="preset-controls">
+        <button id="save-preset-btn">Save Preset</button>
+        <button id="load-preset-btn">Load Preset</button>
+        <input type="file" id="preset-file-input" style="display: none;" accept=".json" />
+      </div>
+    </div>
+  </div>
 
   <!-- Connection Panel -->
   <div id="connection-panel">

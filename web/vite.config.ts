@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
-    base: '/CubeSimulator/',
+    base: '/CubeWebapp/',
     plugins: [basicSsl()],
     server: {
         host: true,

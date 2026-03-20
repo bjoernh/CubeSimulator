@@ -4,6 +4,8 @@ import GUI from 'lil-gui';
 import { LedScreen } from './LedScreen';
 import { CustomCamera } from './CustomCamera';
 import { WebSocketConnection, ScreenFrameData } from './WebSocketConnection';
+import { ParamConfigPanel } from './ParamConfigPanel';
+import { PresetManager } from './PresetManager';
 import { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
 export { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
 
@@ -24,6 +26,8 @@ let screens: LedScreen[];
 let innerCube: THREE.Mesh;
 let gui: GUI;
 let displayStyle: 'Single' | 'Splitscreen' | 'Backdrop' = 'Single';
+let paramPanel: ParamConfigPanel;
+let presetManager: PresetManager;
 
 const cubeOptions = { cubeBorder: 5 };
 const flatOptions = { flatGapCol: 20, flatGapRow: 20, flatColCount: 3, flatRowCount: 2 };
@@ -51,6 +55,9 @@ async function init() {
   setupConnectionUI();
   setupImuListeners();
   window.addEventListener('resize', onWindowResize);
+
+  paramPanel = new ParamConfigPanel(wsConnection);
+  presetManager = new PresetManager(paramPanel);
 
   // Load proto and wire up receiving frames
   await wsConnection.loadProto(import.meta.env.BASE_URL + 'matrixserver.proto');
