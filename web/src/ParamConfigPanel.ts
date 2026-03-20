@@ -95,8 +95,6 @@ export class ParamConfigPanel {
 
         item.appendChild(header);
 
-        let input: HTMLElement;
-
         if (param.type === 'bool') {
             const wrapper = document.createElement('label');
             wrapper.className = 'toggle-switch';
@@ -107,7 +105,6 @@ export class ParamConfigPanel {
             slider.className = 'slider';
             wrapper.appendChild(cb);
             wrapper.appendChild(slider);
-            input = cb;
             
             cb.addEventListener('change', () => {
                 this.ws.sendParamUpdate(param.key, cb.checked, 'bool', this.currentAppId);
@@ -123,7 +120,6 @@ export class ParamConfigPanel {
                 o.textContent = opt;
                 select.appendChild(o);
             });
-            input = select;
             select.addEventListener('change', () => {
                 this.ws.sendParamUpdate(param.key, select.value, 'enum', this.currentAppId);
                 valueDisplay.textContent = select.value;
@@ -138,7 +134,6 @@ export class ParamConfigPanel {
             range.max = (param.maxVal ?? 100).toString();
             range.step = (param.step ?? (param.type === 'int' ? 1 : 0.01)).toString();
             range.value = (param.defaultVal ?? 0).toString();
-            input = range;
 
             range.addEventListener('input', () => {
                 const val = param.type === 'int' ? parseInt(range.value) : parseFloat(range.value);
