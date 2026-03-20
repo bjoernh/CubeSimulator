@@ -74,6 +74,11 @@ async function init() {
 function setupStats() {
   stats = new Stats();
   stats.showPanel(0);
+  stats.dom.style.position = 'absolute';
+  stats.dom.style.left = 'auto';
+  stats.dom.style.right = '0px';
+  stats.dom.style.top = 'auto';
+  stats.dom.style.bottom = '0px';
   document.body.appendChild(stats.dom);
 }
 

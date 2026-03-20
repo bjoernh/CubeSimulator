@@ -64,6 +64,18 @@ export class WebSocketConnection {
 
             this.ws.onopen = () => {
                 this._setState('connected');
+                // Request server info and active app parameter schema
+                if (this.MatrixServerMessage) {
+                    try {
+                        const message = this.MatrixServerMessage.create({
+                            messageType: 2 // matrixserver::getServerInfo
+                        });
+                        const buffer = this.MatrixServerMessage.encode(message).finish();
+                        this.ws!.send(buffer);
+                    } catch (e) {
+                        console.warn('[WebSocketConnection] Failed to send getServerInfo:', e);
+                    }
+                }
             };
 
             this.ws.onmessage = (event: MessageEvent) => {
