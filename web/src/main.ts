@@ -7,6 +7,7 @@ import { WebSocketConnection, ScreenFrameData } from './WebSocketConnection';
 import { ParamConfigPanel } from './ParamConfigPanel';
 import { PresetManager } from './PresetManager';
 import { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
+import { AudioCapture } from './AudioCapture';
 export { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
 
 // --- Config ---
@@ -36,6 +37,11 @@ let isImuActive = false;
 let lastImuSendTime = 0;
 const IMU_SEND_INTERVAL = 100; // ~10Hz
 
+// --- Audio State ---
+let audioCapture: AudioCapture;
+let lastAudioSendTime = 0;
+const AUDIO_SEND_INTERVAL = 33; // ~30Hz
+
 const wsConnection = new WebSocketConnection();
 
 // --- Init ---
@@ -57,6 +63,8 @@ async function init() {
 
   paramPanel = new ParamConfigPanel(wsConnection);
   new PresetManager(paramPanel);
+
+  audioCapture = new AudioCapture();
 
   // Load proto and wire up receiving frames
   await wsConnection.loadProto(import.meta.env.BASE_URL + 'matrixserver.proto');
@@ -210,6 +218,19 @@ function setupGUI() {
   folderSensors.add({ 'Send IMU Stream': false }, 'Send IMU Stream').onChange((val: boolean) => {
     isImuActive = val;
   }).listen().name('Send IMU Data');
+
+  folderSensors.add({ 'Mic Capture': false }, 'Mic Capture').onChange(async (val: boolean) => {
+    if (val) {
+      try {
+        await audioCapture.start();
+        console.log('Audio capture started');
+      } catch (e) {
+        alert('Could not start audio capture. Please allow microphone permissions.');
+      }
+    } else {
+      audioCapture.stop();
+    }
+  }).listen().name('Microphone Capture');
 }
 
 // --- Connection UI ---
@@ -290,6 +311,17 @@ function onWindowResize() {
 function animate() {
   stats.begin();
   requestAnimationFrame(animate);
+
+  if (audioCapture && audioCapture.isRunning && wsConnection.getState() === 'connected') {
+    const now = Date.now();
+    if (now - lastAudioSendTime > AUDIO_SEND_INTERVAL) {
+      lastAudioSendTime = now;
+      const audioData = audioCapture.getAudioData();
+      if (audioData) {
+        wsConnection.sendAudioData(audioData.volume, audioData.frequencyBands);
+      }
+    }
+  }
 
   const settings = getCameraDisplaySettings()[displayStyle];
 

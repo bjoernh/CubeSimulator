@@ -166,6 +166,24 @@ export class WebSocketConnection {
         }
     }
 
+    sendAudioData(volume: number, frequencies: number[]): void {
+        if (this.state !== 'connected' || !this.ws || !this.MatrixServerMessage) return;
+
+        try {
+            const message = this.MatrixServerMessage.create({
+                messageType: 15, // audioDataMessage
+                audioData: {
+                    volume: volume,
+                    frequencyBands: frequencies
+                }
+            });
+            const buffer = this.MatrixServerMessage.encode(message).finish();
+            this.ws.send(buffer);
+        } catch (e) {
+            console.warn('[WebSocketConnection] Failed to encode and send Audio data:', e);
+        }
+    }
+
     sendParamUpdate(key: string, value: any, type: string, appId: number): void {
         if (this.state !== 'connected' || !this.ws || !this.MatrixServerMessage) return;
 
