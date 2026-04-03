@@ -1,14 +1,13 @@
-name: Deploy to GitHub Pages
+name: Build, Release & Deploy
 
 on:
   push:
-    branches:
-      - feature/browser-websocket
-      - master
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -18,14 +17,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-and-build:
+  build-test-package:
+    name: Build, Test & Package
     runs-on: ubuntu-latest
+    
     defaults:
       run:
         working-directory: web
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -41,8 +42,33 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Build
+      - name: Build production assets
         run: npm run build
+
+      - name: Zip package for deployment
+        # Creates a zip of the dist folder contents for the "Ready to Deploy" package
+        run: |
+          cd dist
+          zip -r ../../CubeWebapp-Build.zip .
+          echo "Package created at CubeWebapp-Build.zip"
+
+      - name: Upload Build Artifact (Zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: CubeWebapp-Package
+          path: CubeWebapp-Build.zip
+          retention-days: 14
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: CubeWebapp-Build.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -50,7 +76,8 @@ jobs:
           path: web/dist
 
   deploy:
-    needs: test-and-build
+    name: Deploy to GitHub Pages
+    needs: build-test-package
     runs-on: ubuntu-latest
     environment:
       name: github-pages

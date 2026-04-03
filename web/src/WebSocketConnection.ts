@@ -166,7 +166,7 @@ export class WebSocketConnection {
         }
     }
 
-    sendAudioData(volume: number, frequencies: number[]): void {
+    sendAudioData(volume: number, frequencies: number[] | Uint8Array): void {
         if (this.state !== 'connected' || !this.ws || !this.MatrixServerMessage) return;
 
         try {
