@@ -11,6 +11,7 @@ export type FrameCallback = (screens: ScreenFrameData[]) => void;
 export type StateCallback = (state: ConnectionState) => void;
 export type ParamSchemaCallback = (schema: any, appId: number) => void;
 export type ParamValuesCallback = (values: any, appId: number) => void;
+export type ServerConfigCallback = (config: any) => void;
 
 export class WebSocketConnection {
     private ws: WebSocket | null = null;
@@ -19,6 +20,7 @@ export class WebSocketConnection {
     private stateCallback: StateCallback | null = null;
     private paramSchemaCallback: ParamSchemaCallback | null = null;
     private paramValuesCallback: ParamValuesCallback | null = null;
+    private serverConfigCallback: ServerConfigCallback | null = null;
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private reconnectDelay = 3000;
     private url: string = '';
@@ -46,6 +48,10 @@ export class WebSocketConnection {
 
     onParamValues(cb: ParamValuesCallback): void {
         this.paramValuesCallback = cb;
+    }
+
+    onServerConfig(cb: ServerConfigCallback): void {
+        this.serverConfigCallback = cb;
     }
 
     connect(url: string): void {
@@ -109,7 +115,9 @@ export class WebSocketConnection {
                 this.frameCallback(screens);
             }
 
-            if (message.messageType === 11 && this.paramSchemaCallback) { // appParamSchema
+            if (message.messageType === 2 && message.serverConfig && this.serverConfigCallback) { // getServerInfo
+                this.serverConfigCallback(message.serverConfig);
+            } else if (message.messageType === 11 && this.paramSchemaCallback) { // appParamSchema
                 this.paramSchemaCallback(message.appParamSchema, message.appId);
             } else if (message.messageType === 14 && this.paramValuesCallback) { // appParamValues
                 this.paramValuesCallback(message.appParamValues, message.appId);

@@ -75,6 +75,17 @@ async function init() {
       }
     });
   });
+
+  wsConnection.onServerConfig((config: any) => {
+    const streaming = config.pixelStreamingEnabled !== false; // default true if field absent
+    set3DViewVisible(streaming);
+  });
+}
+
+function set3DViewVisible(visible: boolean) {
+  renderer.domElement.style.display = visible ? 'block' : 'none';
+  gui.domElement.style.display = visible ? 'block' : 'none';
+  stats.dom.style.display = visible ? 'block' : 'none';
 }
 
 // --- Scene ---
@@ -243,6 +254,9 @@ function setupConnectionUI() {
     statusEl.textContent = state.toUpperCase();
     statusEl.className = 'status ' + state;
     connectBtn.textContent = (state === 'connected' || state === 'connecting') ? 'Disconnect' : 'Connect';
+    if (state === 'disconnected') {
+      set3DViewVisible(true); // reset so next connection can re-apply server config
+    }
   });
 
   connectBtn.addEventListener('click', () => {

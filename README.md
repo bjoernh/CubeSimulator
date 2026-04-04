@@ -23,6 +23,8 @@ Example App (C++) ──TCP :2017──► matrixserver (C++)
                            ThreeJS 3D LED Cube Renderer
 ```
 
+The webapp also connects to the **hardware server** (`matrix_server`) on the same WebSocket port. When connected to a hardware server, `ServerConfig.pixelStreamingEnabled` is `false` — the webapp hides the 3D view and shows only the parameter control panel. On disconnect it resets to the full view for the next connection.
+
 ## Development
 
 ```bash
