@@ -37,6 +37,5 @@ npm run build        # Compile production-ready assets to web/dist/ (used by Git
 If testing the full stack, you must also be running the MatrixServer backend with the WebSocket simulator renderer locally:
 ```bash
 cd matrixserver/build
-./server_simulator --use-deprecated-tcp-connection  # Use this flag if falling back to the legacy TCP
-./server_simulator                                  # Standard launch uses the new Boost.Beast WebSocket server on port 1337
+./server_simulator/matrix_server_simulator
 ```

@@ -35,11 +35,11 @@ npm run build    # production build → web/dist/
 
 ## matrixserver Setup
 
-Build `server_simulator` from the [matrixserver](https://github.com/bjoernh/matrixserver) repo with the `feature/websocket-renderer` branch.
+Build and run `matrix_server_simulator` from the [matrixserver](https://github.com/bjoernh/matrixserver) repo:
 
 ```bash
-./server_simulator                              # WebSocket mode (default, port 1337)
-./server_simulator --use-deprecated-tcp-connection  # legacy TCP mode
+mkdir build && cd build && cmake .. && make
+./server_simulator/matrix_server_simulator
 ```
 
 Configure the simulator address in `matrixServerConfig.json`:
