@@ -9,6 +9,7 @@ import { PresetManager } from './PresetManager';
 import { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
 import { AudioCapture } from './AudioCapture';
 import { GamepadCapture } from './GamepadCapture';
+import { SensorStatus } from './SensorStatus';
 export { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
 
 // --- Config ---
@@ -29,6 +30,7 @@ let innerCube: THREE.Mesh;
 let gui: GUI;
 let displayStyle: 'Single' | 'Splitscreen' | 'Backdrop' = 'Single';
 let paramPanel: ParamConfigPanel;
+let sensorStatus: SensorStatus;
 
 const cubeOptions = { cubeBorder: 5 };
 const flatOptions = { flatGapCol: 20, flatGapRow: 20, flatColCount: 3, flatRowCount: 2 };
@@ -64,6 +66,25 @@ async function init() {
   setupGUI();
   setupConnectionUI();
   setupImuListeners();
+  sensorStatus = new SensorStatus();
+  sensorStatus.onToggleImu = (active) => { isImuActive = active; };
+  sensorStatus.onToggleMic = async (active) => {
+    if (active) {
+      try {
+        await audioCapture.start();
+        console.log('Audio capture started');
+      } catch (e) {
+        alert('Could not start audio capture. Please allow microphone permissions.');
+        sensorStatus.setMicActive(false);
+      }
+    } else {
+      audioCapture.stop();
+    }
+  };
+  sensorStatus.onToggleGamepad = (active) => {
+    isGamepadActive = active;
+    console.log("[main] Gamepad Input active:", isGamepadActive);
+  };
   window.addEventListener('resize', onWindowResize);
 
   paramPanel = new ParamConfigPanel(wsConnection);
@@ -92,6 +113,7 @@ function set3DViewVisible(visible: boolean) {
   renderer.domElement.style.display = visible ? 'block' : 'none';
   gui.domElement.style.display = visible ? 'block' : 'none';
   stats.dom.style.display = visible ? 'block' : 'none';
+  sensorStatus?.setVisible(visible);
 }
 
 // --- Scene ---
@@ -118,8 +140,12 @@ function setupScene() {
     ));
   }
   setScreenPositionsCube(screens, cubeOptions.cubeBorder);
-  screens.forEach(screen => {
-    screen.fillTextureRandom(0, 150, 255);
+  screens.forEach((screen, index) => {
+    if (index === 0) {
+      screen.drawText('PRESS CONNECT', '#ffffff', '#000000', -Math.PI / 2);
+    } else {
+      screen.fillTextureRandom(0, 150, 255);
+    }
     scene.add(screen.mesh);
   });
 
@@ -216,6 +242,7 @@ function setupGUI() {
               console.log('IMU Permission granted');
               alert('IMU Permission granted');
               isImuActive = true;
+              sensorStatus.setImuActive(true);
             } else {
               alert('IMU Permission denied: ' + permissionState);
             }
@@ -227,32 +254,12 @@ function setupGUI() {
       } else {
         // Non iOS 13+ devices
         isImuActive = true;
+        sensorStatus.setImuActive(true);
         console.log('IMU tracking enabled (No explicit permission required on this browser)');
         alert('IMU tracking enabled (No explicit permission required on this browser)');
       }
     }
   }, 'Request Permissions');
-  folderSensors.add({ 'Send IMU Stream': false }, 'Send IMU Stream').onChange((val: boolean) => {
-    isImuActive = val;
-  }).listen().name('Send IMU Data');
-
-  folderSensors.add({ 'Mic Capture': false }, 'Mic Capture').onChange(async (val: boolean) => {
-    if (val) {
-      try {
-        await audioCapture.start();
-        console.log('Audio capture started');
-      } catch (e) {
-        alert('Could not start audio capture. Please allow microphone permissions.');
-      }
-    } else {
-      audioCapture.stop();
-    }
-  }).listen().name('Microphone Capture');
-
-  folderSensors.add({ 'Send Gamepad': false }, 'Send Gamepad').onChange((val: boolean) => {
-    isGamepadActive = val;
-    console.log("[main] Gamepad Input active:", isGamepadActive);
-  }).listen().name('Gamepad Input');
 }
 
 // --- Connection UI ---
@@ -267,6 +274,13 @@ function setupConnectionUI() {
     connectBtn.textContent = (state === 'connected' || state === 'connecting') ? 'Disconnect' : 'Connect';
     if (state === 'disconnected') {
       set3DViewVisible(true); // reset so next connection can re-apply server config
+      if (screens && screens.length > 0) {
+        screens[0].drawText('PRESS CONNECT', '#ffffff', '#000000', -Math.PI / 2);
+      }
+    } else if (state === 'connected') {
+      if (screens && screens.length > 0) {
+        screens[0].drawText('CONNECTED NO APP RUNS', '#ffffff', '#000000', -Math.PI / 2);
+      }
     }
   });
 

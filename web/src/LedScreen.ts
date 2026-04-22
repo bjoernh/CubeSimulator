@@ -57,4 +57,45 @@ export class LedScreen {
     invalidate(): void {
         this.texture.needsUpdate = true;
     }
+
+    drawText(text: string, color: string = 'white', bgColor: string = 'black', rotation: number = Math.PI / 2): void {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.pixelWidth;
+        canvas.height = this.pixelHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Background
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // DataTexture reads bottom-up so flip Y
+        ctx.scale(1, -1);
+        ctx.translate(0, -canvas.height);
+
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(rotation);
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 9px Arial';
+
+        const words = text.split(' ');
+        const lineHeight = 12;
+        const startY = (canvas.height - (words.length * lineHeight)) / 2 + (lineHeight / 2);
+        
+        for(let i = 0; i < words.length; i++) {
+            ctx.fillText(words[i], canvas.width / 2, startY + i * lineHeight);
+        }
+
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < this.size; i++) {
+            this.data[i * 4] = imgData.data[i * 4];
+            this.data[i * 4 + 1] = imgData.data[i * 4 + 1];
+            this.data[i * 4 + 2] = imgData.data[i * 4 + 2];
+        }
+        this.invalidate();
+    }
 }

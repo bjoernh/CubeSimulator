@@ -93,28 +93,32 @@ export class GamepadCapture {
     }
 
     private mapGamepadToJoystick(gp: Gamepad, virtualId: number): JoystickData {
+        const getBtn = (idx: number) => gp.buttons[idx]?.pressed || false;
+        const getVal = (idx: number) => gp.buttons[idx]?.value || 0;
+        const getAxis = (idx: number) => gp.axes[idx] || 0;
+
         return {
             joystickID: virtualId,
-            axisX: this.applyDeadzone(gp.axes[0]),
-            axisY: this.applyDeadzone(gp.axes[1]),
-            buttonA: gp.buttons[0].pressed,
-            buttonB: gp.buttons[1].pressed,
-            buttonX: gp.buttons[2].pressed,
-            buttonY: gp.buttons[3].pressed,
-            buttonL: gp.buttons[4].pressed,
-            buttonR: gp.buttons[5].pressed,
-            buttonSelect: gp.buttons[8].pressed,
-            buttonStart: gp.buttons[9].pressed,
-            leftStickButton: gp.buttons[10].pressed,
-            rightStickButton: gp.buttons[11].pressed,
-            buttonDpadUp: gp.buttons[12].pressed,
-            buttonDpadDown: gp.buttons[13].pressed,
-            buttonDpadLeft: gp.buttons[14].pressed,
-            buttonDpadRight: gp.buttons[15].pressed,
-            rightAxisX: this.applyDeadzone(gp.axes[2]),
-            rightAxisY: this.applyDeadzone(gp.axes[3]),
-            leftTrigger: gp.buttons[6].value,
-            rightTrigger: gp.buttons[7].value,
+            axisX: this.applyDeadzone(getAxis(0)),
+            axisY: this.applyDeadzone(getAxis(1)),
+            buttonA: getBtn(0),
+            buttonB: getBtn(1),
+            buttonX: getBtn(2),
+            buttonY: getBtn(3),
+            buttonL: getBtn(4),
+            buttonR: getBtn(5),
+            buttonSelect: getBtn(8),
+            buttonStart: getBtn(9),
+            leftStickButton: getBtn(10),
+            rightStickButton: getBtn(11),
+            buttonDpadUp: getBtn(12),
+            buttonDpadDown: getBtn(13),
+            buttonDpadLeft: getBtn(14),
+            buttonDpadRight: getBtn(15),
+            rightAxisX: this.applyDeadzone(getAxis(2)),
+            rightAxisY: this.applyDeadzone(getAxis(3)),
+            leftTrigger: getVal(6),
+            rightTrigger: getVal(7),
         };
     }
 
