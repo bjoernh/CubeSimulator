@@ -8,6 +8,7 @@ import { ParamConfigPanel } from './ParamConfigPanel';
 import { PresetManager } from './PresetManager';
 import { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
 import { AudioCapture } from './AudioCapture';
+import { GamepadCapture } from './GamepadCapture';
 export { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
 
 // --- Config ---
@@ -42,6 +43,10 @@ let audioCapture: AudioCapture;
 let lastAudioSendTime = 0;
 const AUDIO_SEND_INTERVAL = 33; // ~30Hz
 
+// --- Gamepad State ---
+let gamepadCapture: GamepadCapture;
+let isGamepadActive = false;
+
 const wsConnection = new WebSocketConnection();
 
 // --- Init ---
@@ -65,6 +70,7 @@ async function init() {
   new PresetManager(paramPanel);
 
   audioCapture = new AudioCapture();
+  gamepadCapture = new GamepadCapture();
 
   // Load proto and wire up receiving frames
   await wsConnection.loadProto(import.meta.env.BASE_URL + 'matrixserver.proto');
@@ -242,6 +248,11 @@ function setupGUI() {
       audioCapture.stop();
     }
   }).listen().name('Microphone Capture');
+
+  folderSensors.add({ 'Send Gamepad': false }, 'Send Gamepad').onChange((val: boolean) => {
+    isGamepadActive = val;
+    console.log("[main] Gamepad Input active:", isGamepadActive);
+  }).listen().name('Gamepad Input');
 }
 
 // --- Connection UI ---
@@ -334,6 +345,14 @@ function animate() {
       if (audioData) {
         wsConnection.sendAudioData(audioData.volume, audioData.frequencyBands);
       }
+    }
+  }
+
+  if (isGamepadActive && wsConnection.getState() === 'connected') {
+    const gamepadChanges = gamepadCapture.getChanges();
+    if (gamepadChanges.length > 0) {
+      console.log("[main] Sending Gamepad changes:", gamepadChanges);
+      wsConnection.sendJoystickData(gamepadChanges);
     }
   }
 

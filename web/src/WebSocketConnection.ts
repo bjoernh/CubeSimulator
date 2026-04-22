@@ -214,6 +214,21 @@ export class WebSocketConnection {
         }
     }
 
+    sendJoystickData(joysticks: any[]): void {
+        if (this.state !== 'connected' || !this.ws || !this.MatrixServerMessage) return;
+
+        try {
+            const message = this.MatrixServerMessage.create({
+                messageType: 10, // joystickData
+                joystickData: joysticks
+            });
+            const buffer = this.MatrixServerMessage.encode(message).finish();
+            this.ws.send(buffer);
+        } catch (e) {
+            console.warn('[WebSocketConnection] Failed to send joystick data:', e);
+        }
+    }
+
     sendGetAppParams(appId: number): void {
         if (this.state !== 'connected' || !this.ws || !this.MatrixServerMessage) return;
 
