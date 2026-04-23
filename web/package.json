@@ -1,7 +1,7 @@
 {
   "name": "ledcube-webapp",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.4.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,17 +12,17 @@
   },
   "dependencies": {
     "lil-gui": "^0.21.0",
-    "protobufjs": "^8.0.0",
+    "protobufjs": "^8.0.1",
     "stats.js": "^0.17.0",
-    "three": "^0.183.0"
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@types/stats.js": "^0.17.4",
-    "@types/three": "^0.183.0",
-    "@vitejs/plugin-basic-ssl": "^2.1.4",
-    "jsdom": "^28.1.0",
-    "typescript": "^5.7.0",
-    "vite": "^7.0.0",
-    "vitest": "^4.0.18"
+    "@types/three": "^0.184.0",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "jsdom": "^29.0.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
   }
 }

@@ -76,7 +76,7 @@ export class WebSocketConnection {
                         const message = this.MatrixServerMessage.create({
                             messageType: 2 // matrixserver::getServerInfo
                         });
-                        const buffer = this.MatrixServerMessage.encode(message).finish();
+                        const buffer = this.MatrixServerMessage.encode(message).finish() as Uint8Array<ArrayBuffer>;
                         this.ws!.send(buffer);
                     } catch (e) {
                         console.warn('[WebSocketConnection] Failed to send getServerInfo:', e);
@@ -167,7 +167,7 @@ export class WebSocketConnection {
                     gyroZ: 0
                 }
             });
-            const buffer = this.MatrixServerMessage.encode(message).finish();
+            const buffer = this.MatrixServerMessage.encode(message).finish() as Uint8Array<ArrayBuffer>;
             this.ws.send(buffer);
         } catch (e) {
             console.warn('[WebSocketConnection] Failed to encode and send IMU data:', e);
@@ -185,7 +185,7 @@ export class WebSocketConnection {
                     frequencyBands: frequencies
                 }
             });
-            const buffer = this.MatrixServerMessage.encode(message).finish();
+            const buffer = this.MatrixServerMessage.encode(message).finish() as Uint8Array<ArrayBuffer>;
             this.ws.send(buffer);
         } catch (e) {
             console.warn('[WebSocketConnection] Failed to encode and send Audio data:', e);
@@ -207,7 +207,7 @@ export class WebSocketConnection {
                 appId,
                 appParamUpdate: update
             });
-            const buffer = this.MatrixServerMessage.encode(message).finish();
+            const buffer = this.MatrixServerMessage.encode(message).finish() as Uint8Array<ArrayBuffer>;
             this.ws.send(buffer);
         } catch (e) {
             console.warn('[WebSocketConnection] Failed to send param update:', e);
@@ -222,7 +222,7 @@ export class WebSocketConnection {
                 messageType: 10, // joystickData
                 joystickData: joysticks
             });
-            const buffer = this.MatrixServerMessage.encode(message).finish();
+            const buffer = this.MatrixServerMessage.encode(message).finish() as Uint8Array<ArrayBuffer>;
             this.ws.send(buffer);
         } catch (e) {
             console.warn('[WebSocketConnection] Failed to send joystick data:', e);
@@ -237,7 +237,7 @@ export class WebSocketConnection {
                 messageType: 13, // getAppParams
                 appId
             });
-            const buffer = this.MatrixServerMessage.encode(message).finish();
+            const buffer = this.MatrixServerMessage.encode(message).finish() as Uint8Array<ArrayBuffer>;
             this.ws.send(buffer);
         } catch (e) {
             console.warn('[WebSocketConnection] Failed to send getAppParams:', e);
