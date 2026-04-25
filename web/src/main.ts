@@ -9,6 +9,7 @@ import { PresetManager } from './PresetManager';
 import { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
 import { AudioCapture } from './AudioCapture';
 import { GamepadCapture } from './GamepadCapture';
+import { KeyboardCapture } from './KeyboardCapture';
 import { SensorStatus } from './SensorStatus';
 export { setScreenPositionsCube, setScreenPositionsFlat } from './CubeLayout';
 
@@ -49,6 +50,11 @@ const AUDIO_SEND_INTERVAL = 33; // ~30Hz
 let gamepadCapture: GamepadCapture;
 let isGamepadActive = false;
 
+// --- Keyboard State ---
+let keyboardCapture: KeyboardCapture;
+let isKeyboardActive = false;
+let keyboardAutoFallbackDone = false;
+
 const wsConnection = new WebSocketConnection();
 
 // --- Init ---
@@ -85,6 +91,12 @@ async function init() {
     isGamepadActive = active;
     console.log("[main] Gamepad Input active:", isGamepadActive);
   };
+  sensorStatus.onToggleKb = (active) => {
+    isKeyboardActive = active;
+    if (active) keyboardCapture.start();
+    else        keyboardCapture.stop();
+    console.log("[main] Keyboard Input active:", isKeyboardActive);
+  };
   window.addEventListener('resize', onWindowResize);
 
   paramPanel = new ParamConfigPanel(wsConnection);
@@ -92,6 +104,7 @@ async function init() {
 
   audioCapture = new AudioCapture();
   gamepadCapture = new GamepadCapture();
+  keyboardCapture = new KeyboardCapture();
 
   // Load proto and wire up receiving frames
   await wsConnection.loadProto(import.meta.env.BASE_URL + 'matrixserver.proto');
@@ -362,11 +375,33 @@ function animate() {
     }
   }
 
-  if (isGamepadActive && wsConnection.getState() === 'connected') {
-    const gamepadChanges = gamepadCapture.getChanges();
-    if (gamepadChanges.length > 0) {
-      console.log("[main] Sending Gamepad changes:", gamepadChanges);
-      wsConnection.sendJoystickData(gamepadChanges);
+  if (wsConnection.getState() === 'connected') {
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const hasGamepad = Array.from(gamepads).some(gp => gp !== null);
+
+    // Auto-fallback: enable keyboard once on first connected frame without a gamepad.
+    // If a gamepad subsequently connects, yield to it so keyboard input doesn't fight it.
+    if (!hasGamepad && !isGamepadActive && !isKeyboardActive && !keyboardAutoFallbackDone) {
+      keyboardAutoFallbackDone = true;
+      sensorStatus.setKbActive(true);
+      if (sensorStatus.onToggleKb) sensorStatus.onToggleKb(true);
+    } else if (hasGamepad && isKeyboardActive) {
+      sensorStatus.setKbActive(false);
+      if (sensorStatus.onToggleKb) sensorStatus.onToggleKb(false);
+    }
+
+    if (isGamepadActive) {
+      const gamepadChanges = gamepadCapture.getChanges();
+      if (gamepadChanges.length > 0) {
+        console.log("[main] Sending Gamepad changes:", gamepadChanges);
+        wsConnection.sendJoystickData(gamepadChanges);
+      }
+    }
+    // Keyboard may still have a pending zeroed flush after stop(), so poll even when inactive.
+    const kbChanges = keyboardCapture.getChanges();
+    if (kbChanges.length > 0) {
+      console.log("[main] Sending Keyboard changes:", kbChanges);
+      wsConnection.sendJoystickData(kbChanges);
     }
   }
 
