@@ -118,15 +118,10 @@ async function init() {
 
   wsConnection.onServerConfig((config: any) => {
     const streaming = config.pixelStreamingEnabled !== false; // default true if field absent
-    set3DViewVisible(streaming);
+    if (!streaming && screens && screens.length > 0) {
+      screens[0].drawText('NO PIXEL STREAMING', '#ffaa00', '#000000', -Math.PI / 2);
+    }
   });
-}
-
-function set3DViewVisible(visible: boolean) {
-  renderer.domElement.style.display = visible ? 'block' : 'none';
-  gui.domElement.style.display = visible ? 'block' : 'none';
-  stats.dom.style.display = visible ? 'block' : 'none';
-  sensorStatus?.setVisible(visible);
 }
 
 // --- Scene ---
@@ -286,7 +281,6 @@ function setupConnectionUI() {
     statusEl.className = 'status ' + state;
     connectBtn.textContent = (state === 'connected' || state === 'connecting') ? 'Disconnect' : 'Connect';
     if (state === 'disconnected') {
-      set3DViewVisible(true); // reset so next connection can re-apply server config
       if (screens && screens.length > 0) {
         screens[0].drawText('PRESS CONNECT', '#ffffff', '#000000', -Math.PI / 2);
       }
